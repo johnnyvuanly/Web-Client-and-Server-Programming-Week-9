@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Product Page</title>
+    <script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script>
+    <link rel="stylesheet" href="styles.css" type="text/css">
+</head>
+<body>
+
+<div id="app">
+
+    <div>
+        <!-- Customer's order here -->
+         <p v-for="order in customerOrder">Order item: {{ order }}</p>
+    </div>
+    
+    <div v-for="product in products">
+        <!-- HTML here-->
+        <!-- Data from Vue displayed in template -->
+        <h1>{{ product.productName }}</h1>
+
+        <!-- v-bind sets HTML attribute values using Vue data -->
+        <!-- Setting the src attribute for an image -->
+        <img v-bind:src="product.image">
+
+        <p>{{ product.description }}</p>
+
+        <p v-if="product.available">This product is available!</p>
+        <!-- If and else have to be next to each other in order to work -->
+        <p v-else>Sorry, this product is not available. Please check back later</p>
+        
+        <p>Quantity Available: {{ product.quantityAvailable }}</p>
+
+        <ul>
+            <!-- For all the feature in the features array, display each of them in an unordered list -->
+            <li v-for="feature in product.features">{{ feature }}</li>
+        </ul>
+        
+        <div>
+            <div>
+                <p>The maximum quantity you can order is {{ product.maxQuantity }}</p>
+                <button v-on:click="decreaseQuantity(product)">-</button>
+                <input type ="number" v-model="product.quantity" v-on:change="verifyQuantity(product)">
+                <button v-on:click="increaseQuantity(product)">+</button>
+            </div>
+            <p class="error">{{ product.message }}</p>
+        </div>
+
+        <button v-on:click="order(product)">Order</button>
+
+        </div> <!-- end of product div -->
+
+</div> <!-- End of app div -->
+
+
+
+<script>
+
+    let app = new Vue ({
+        el: "#app",
+        data: {
+            productApiUrl: 'https://vue-2560-product.herokuapp.com/',
+            products: [],
+            customerOrder: []
+
+        //     products: [ {
+        //     productName: 'Boot', 
+        //     description: 'Waterproof boots, ideal for MN winters',
+        //     available: true,
+        //     quantityAvailable: 100,
+        //     features: ['Warm', 'Waterproof', 'Comes in a pair', 'Comfy'],
+        //     image: 'Snow_Boots.png',
+        //     quantity: 1,
+        //     maxQuantity: 5,
+        //     minQuantity: 1,
+        //     price: 99.99,
+        //     message: ''
+
+        // }, {
+        //     productName: 'Glove', 
+        //     description: 'Warm, ideal for MN winters',
+        //     available: true,
+        //     quantityAvailable: 100,
+        //     features: ['Warm', 'Waterproof', 'Comes in a pair', 'Comfy'],
+        //     image: 'Gloves.png',
+        //     quantity: 1,
+        //     maxQuantity: 10,
+        //     minQuantity: 1,
+        //     price: 49.99,
+        //     message: ''
+        //     } ], // End of array
+        //     customerOrder: [] // new data dor order info
+            
+        },
+        mounted() {
+            console.log('hello!')
+
+            let productsURL = this.productsApiUrl + 'api/products'
+            fetch(productsURL).then( response => response.json())
+                .then( products => {
+                    this.products = products // set Vue data to response from API
+                })
+
+        },
+        methods: {
+            // Function definitions
+            // a function attached to an object is called a method
+            // function, method.. almost the exact same thing
+            order(product) {
+                // Display an alert with the order info
+                // "Thank you, you have ordered 4 boots at 49.99 each total = 199.96"
+                // Optional - fix case of product name
+                let total = product.price * product.quantity
+                let orderInfo = `Thank you, you have ordered ${product.quantity} of ${product.productName} at ${product.price} each. Total ${total}`
+                alert(orderInfo)
+                this.customerOrder.push(orderInfo)
+                // TODO how to prevent duplicate orders?
+            },
+
+            decreaseQuantity(product) {
+                product.message = ''
+
+                let newQuantity = product.quantity - 1
+
+                if ( newQuantity < product.minQuantity) {
+                    // error
+                    product.message = 'Minimum quanity is ' + product.minQuantity
+                } 
+                else {
+                    product.quantity = newQuantity
+                }
+            },
+            increaseQuantity(product) {
+                product.message = ''
+                let newQuantity = product.quantity + 1
+
+                if ( newQuantity > product.maxQuantity) {
+                    // not allowed
+                    product.message = 'Maximum quanity is ' + product.maxQuantity
+
+                }
+                else {
+                    product.quantity = newQuantity
+                }
+            },
+            verifyQuantity(product) {
+                
+                product.message = ''
+                
+                if (product.quantity < product.minQuantity) {
+                    product.message = 'Minimum quantity is ' + product.minQuantity
+                    product.quantity = product.minQuantity
+                }
+                if (product.quantity > product.maxQuantity) {
+                    product.message = 'Maximum quantity is ' + product.maxQuantity
+                    product.quantity = product.maxQuantity
+                }
+            }
+        }
+    })
+   
+
+</script>
+
+</body>
+</html>
